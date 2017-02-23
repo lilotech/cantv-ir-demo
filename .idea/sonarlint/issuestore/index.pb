@@ -25,3 +25,7 @@ happ/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.0/re
 happ/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.0/res/values-ko/values-ko.xml,1/7/1778dddc00cd2a9b1669feb3c0f2777235d3bdf3
 ˜
 happ/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.0/res/values-it/values-it.xml,5/2/528300a3359a781e2e59641213b2bf119c7ce94e
+˜
+happ/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.0/res/values-iw/values-iw.xml,4/e/4e16fbff805b7965599b5dc85347d33496dc268d
+˜
+happ/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.0/res/values-de/values-de.xml,3/f/3ff3dc2ee453acb0fd9c7071cf3322a0b8a59894
