@@ -1,0 +1,15 @@
+
+Bsquid:S1659%"&Declare "downcode" on a separate line.(§Å¹Öýÿÿÿÿ
+Bsquid:S1659%"&Declare "leftcode" on a separate line.(§Å¹Öýÿÿÿÿ
+>squid:S1659&"'Declare "rightcode" on a separate line.(ŠŒÓõ
+:squid:S1659&"#Declare "volup" on a separate line.(ŠŒÓõ
+;squid:S1659&"$Declare "okcode" on a separate line.(ŠŒÓõ
+=squid:S1659'"&Declare "backcode" on a separate line.(ç‘©Ô
+>squid:S1659'"'Declare "channelUP" on a separate line.(ç‘©Ô
+jsquid:S3008"NRename this field "TAG" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(ÙÔ¹·ýÿÿÿÿ
+Csquid:S1068"'Remove this unused "TAG" private field.(ÙÔ¹·ýÿÿÿÿ
+gsquid:CommentedOutCodeLine)"<This block of commented-out lines of code should be removed.(Ãí°˜ùÿÿÿÿ
+bsquid:CommentedOutCodeLine6"<This block of commented-out lines of code should be removed.(–‘ì®
+bsquid:CommentedOutCodeLineC"<This block of commented-out lines of code should be removed.(ùà½Ÿ
+bsquid:CommentedOutCodeLineE"<This block of commented-out lines of code should be removed.(ö“üž
+esquid:MaximumInheritanceDepth"<This class has 6 parents which is greater than 5 authorized.(·¹ïÑ
