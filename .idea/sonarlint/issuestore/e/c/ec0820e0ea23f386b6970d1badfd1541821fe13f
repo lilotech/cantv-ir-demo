@@ -1,11 +1,0 @@
-
-S"squid:SwitchLastCaseIsDefaultCheck""Add a default case to this switch.(ýÞ³‹ùÿÿÿÿ
-Usquid:S1213";Move this constructor to comply with Java Code Conventions.(å³ÓÃüÿÿÿÿ
-Ksquid:S2696"6Make the enclosing method "static" or remove this set.(ì„³»
-Psquid:S2696"6Make the enclosing method "static" or remove this set.(Ž‰‚Õýÿÿÿÿ
-:squid:S1166"%Either log or rethrow this exception.(±§‰º
-:squid:S1166"%Either log or rethrow this exception.(±§‰º
-ƒsquid:S1151"iReduce this switch case number of lines from 8 to at most 5, for example by extracting code into methods.(¿Ãõýÿÿÿÿÿ
-„squid:S1151"jReduce this switch case number of lines from 12 to at most 5, for example by extracting code into methods.(ªùÉÊýÿÿÿÿ
-=squid:S1148"#Use a logger to log this exception.(€ÉÔ…ýÿÿÿÿ
-=squid:S1148"#Use a logger to log this exception.(€ÉÔ…ýÿÿÿÿ

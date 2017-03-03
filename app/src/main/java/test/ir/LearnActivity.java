@@ -1,15 +1,24 @@
 package test.ir;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 
+import com.lilosrv.ir.ConsumerIrDevice;
 import com.lilosrv.ir.IrProtocolEnum;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import butterknife.OnLongClick;
+import butterknife.OnTouch;
 
 public class LearnActivity extends AppCompatActivity {
     private static String TAG = LearnActivity.class.getSimpleName();
@@ -34,12 +43,40 @@ public class LearnActivity extends AppCompatActivity {
             , 646, 487, 652, 1615, 654, 479, 650, 484, 656, 477, 652, 1615, 653
             , 480, 649, 1618, 651, 1616, 653, 480, 649
     };
-    String upcode = "B37CCA35", downcode = "B37CD22D", leftcode = "B37C9966",
-            rightcode = "B37CC13E", volup = "B37C9768", okcode = "B37CCE31",
-            backcode = "B37CC53A", channelUP = "80102658";
+    private String upcode = "B37CCA35", downcode = "B37CD22D", leftcode = "B37C9966",
+            rightcode = "B37CC13E", volup = "B37C9768", voldown = "B37CCA35",
+            okcode = "B37CCE31", backcode = "B37CC53A", channelUP = "80102658";
+    private static final int LONG_KEY_RIGHT_CODE = 1;
+    private static final int LONG_KEY_LEFT_CODE = 2;
+    private static final int LONG_KEY_VOLUP_CODE = 3;
 
-    //    IrDriver irDriver;
     IrSender sender;
+    /**
+     * 长按发红外码
+     * LONG_KEY_RIGHT_CODE 发送右键红外码
+     * LONG_KEY_LEFT_CODE  发送左键红外码
+     * LONG_KEY_VOLUP_CODE 发送音量+键红外码
+     */
+    private Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case LONG_KEY_RIGHT_CODE:
+                    sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, rightcode);
+                    sendEmptyMessageDelayed(LONG_KEY_RIGHT_CODE, 100);
+                    break;
+                case LONG_KEY_LEFT_CODE:
+                    sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, leftcode);
+                    sendEmptyMessageDelayed(LONG_KEY_LEFT_CODE, 100);
+                    break;
+                case LONG_KEY_VOLUP_CODE:
+                    sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, volup);
+                    sendEmptyMessageDelayed(LONG_KEY_VOLUP_CODE, 100);
+                    break;
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,12 +84,48 @@ public class LearnActivity extends AppCompatActivity {
         setContentView(R.layout.box_control);
         ButterKnife.bind(this);
         sender = IrSender.getIrDriver();
+
+        ConsumerIrDevice irDevice = new ConsumerIrDevice();
+
+        Log.i(TAG, "Check whether the device has an infrared emitter = " + irDevice.hasIrEmitter());
+        Log.i(TAG, "Check whether the device has an infrared receiver = " + irDevice.hasIrReceiver());
+//         an array of CarrierFrequencyRange objects representing the ranges that the
+//         transmitter can support, or null if there was an error.
+        ConsumerIrDevice.CarrierFrequencyRange[] ranges = irDevice.getIrReceiverCarrierFreqency();
+        for (ConsumerIrDevice.CarrierFrequencyRange range : ranges) {
+            Log.i(TAG, "Query the infrared receiver's supported carrier frequencies = " + range.getMaxFrequency() + "  getMinFrequency=" + range.getMinFrequency());
+        }
+//         an array of CarrierFrequencyRange objects representing the ranges that the
+//         transmitter can support, or null if there was an error.
+        ConsumerIrDevice.CarrierFrequencyRange[] ranges1 = irDevice.getCarrierFrequencies();
+        for (ConsumerIrDevice.CarrierFrequencyRange carrierFrequencyRange : ranges1) {
+            Log.i(TAG, "Query the infrared transmitter's supported carrier frequencies" + carrierFrequencyRange.getMaxFrequency() + "~  getMinFrequency=" + carrierFrequencyRange.getMinFrequency());
+        }
+
     }
 
     @OnClick(R.id.sendir)
     public void sendway() {
 //        sender.sendCode(IrProtocolEnum.IR_Philips_RC6_M6_Long_Gehua,channelUP);
         sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, upcode);
+    }
+
+    @OnLongClick(R.id.sendir)
+    public boolean sendir() {
+        handler.sendEmptyMessage(LONG_KEY_VOLUP_CODE);
+        return true;
+    }
+
+    @OnTouch(R.id.sendir)
+    public boolean ontouchsendirButton(View v, MotionEvent event) {
+        switch (event.getAction()) {
+            case KeyEvent.ACTION_DOWN:
+                break;
+            case KeyEvent.ACTION_UP:
+                handler.removeMessages(LONG_KEY_VOLUP_CODE);
+                break;
+        }
+        return false;
     }
 
     @OnClick(R.id.recev)
@@ -67,6 +140,7 @@ public class LearnActivity extends AppCompatActivity {
 //        sender.sendPulse(38000, volupData);
         sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, "B37CCA35");
 //        sender.sendMangledCode("f52584de741c1d89e1e1cfc6c05f882f");
+//        sender.sendCode(IrProtocolEnum.IR_Philips_RC6_M6_Long_Gehua, channelUP);
     }
 
     @OnClick(R.id.Button_down)
@@ -79,9 +153,45 @@ public class LearnActivity extends AppCompatActivity {
         sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, leftcode);
     }
 
+    @OnLongClick(R.id.Button_left)
+    public boolean sendLongLeftKey() {
+        handler.sendEmptyMessage(LONG_KEY_LEFT_CODE);
+        return true;
+    }
+
+    @OnTouch(R.id.Button_left)
+    public boolean ontouchLeftButton(View v, MotionEvent event) {
+        switch (event.getAction()) {
+            case KeyEvent.ACTION_DOWN:
+                break;
+            case KeyEvent.ACTION_UP:
+                handler.removeMessages(LONG_KEY_LEFT_CODE);
+                break;
+        }
+        return false;
+    }
+
     @OnClick(R.id.Button_right)
     public void sendright() {
         sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, rightcode);
+    }
+
+    @OnLongClick(R.id.Button_right)
+    public boolean sendLongRightKey() {
+        handler.sendEmptyMessage(LONG_KEY_RIGHT_CODE);
+        return true;
+    }
+
+    @OnTouch(R.id.Button_right)
+    public boolean ontouchRightButton(View v, MotionEvent event) {
+        switch (event.getAction()) {
+            case KeyEvent.ACTION_DOWN:
+                break;
+            case KeyEvent.ACTION_UP:
+                handler.removeMessages(LONG_KEY_RIGHT_CODE);
+                break;
+        }
+        return false;
     }
 
     @OnClick(R.id.Button_enter)
