@@ -12,6 +12,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 
 import com.lilosrv.ir.ConsumerIrDevice;
+import com.lilosrv.ir.IrException;
 import com.lilosrv.ir.IrProtocolEnum;
 
 import butterknife.Bind;
@@ -50,6 +51,10 @@ public class LearnActivity extends AppCompatActivity {
     private static final int LONG_KEY_LEFT_CODE = 2;
     private static final int LONG_KEY_VOLUP_CODE = 3;
 
+
+    private int[] learn = null;
+    private String learnMangleCode;
+
     IrSender sender;
     /**
      * 长按发红外码
@@ -78,6 +83,9 @@ public class LearnActivity extends AppCompatActivity {
         }
     };
 
+
+    ConsumerIrDevice irDevice = new ConsumerIrDevice();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,7 +93,7 @@ public class LearnActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         sender = IrSender.getIrDriver();
 
-        ConsumerIrDevice irDevice = new ConsumerIrDevice();
+
 
         Log.i(TAG, "Check whether the device has an infrared emitter = " + irDevice.hasIrEmitter());
         Log.i(TAG, "Check whether the device has an infrared receiver = " + irDevice.hasIrReceiver());
@@ -99,7 +107,8 @@ public class LearnActivity extends AppCompatActivity {
 //         transmitter can support, or null if there was an error.
         ConsumerIrDevice.CarrierFrequencyRange[] ranges1 = irDevice.getCarrierFrequencies();
         for (ConsumerIrDevice.CarrierFrequencyRange carrierFrequencyRange : ranges1) {
-            Log.i(TAG, "Query the infrared transmitter's supported carrier frequencies" + carrierFrequencyRange.getMaxFrequency() + "~  getMinFrequency=" + carrierFrequencyRange.getMinFrequency());
+            Log.i(TAG, "Query the infrared transmitter's supported carrier frequencies =" +
+                    carrierFrequencyRange.getMaxFrequency() + "  getMinFrequency=" + carrierFrequencyRange.getMinFrequency());
         }
 
     }
@@ -107,14 +116,21 @@ public class LearnActivity extends AppCompatActivity {
     @OnClick(R.id.sendir)
     public void sendway() {
 //        sender.sendCode(IrProtocolEnum.IR_Philips_RC6_M6_Long_Gehua,channelUP);
-        sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, upcode);
+       // sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, upcode);
+       // sender.sendPulse(38000, learn);
+
+        if (learnMangleCode != null)
+            sender.sendMangledCode(learnMangleCode);
+        else if (learn != null)
+            sender.sendPulse(38000, learn);
     }
 
     @OnLongClick(R.id.sendir)
     public boolean sendir() {
-        handler.sendEmptyMessage(LONG_KEY_VOLUP_CODE);
+        //handler.sendEmptyMessage(LONG_KEY_VOLUP_CODE);
         return true;
     }
+
 
     @OnTouch(R.id.sendir)
     public boolean ontouchsendirButton(View v, MotionEvent event) {
@@ -130,14 +146,43 @@ public class LearnActivity extends AppCompatActivity {
 
     @OnClick(R.id.recev)
     public void recway() {
-        sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, backcode);
+       // sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, backcode);
+
+        Log.d(TAG, "Start to learn....");
+
+        try {
+            irDevice.receive(new ConsumerIrDevice.IrReceiveListener() {
+                @Override
+                public void onIrResult(int[] ints, String s) {
+
+                    Log.d(TAG, "Learned pulse: len=" + ints.length);
+                    for (int i = 0; i < ints.length; i++) {
+                        Log.d(TAG, "" + i + "     " + ints[i]);
+                    }
+
+                    learn = ints;
+
+                    Log.d(TAG, "Learned manglecode: " + s);
+                    learnMangleCode = s;
+                }
+
+                @Override
+                public void onError(IrException e) {
+                    Log.e(TAG, "", e);
+                }
+            });
+
+        }catch (IrException e) {
+            Log.e(TAG, "", e);
+        }
+
     }
 
     @OnClick(R.id.Button_up)
     public void sendup() {
 
         /*以下三种发送方式等效*/
-//        sender.sendPulse(38000, volupData);
+  //      sender.sendPulse(38000, learn);
         sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, "B37CCA35");
 //        sender.sendMangledCode("f52584de741c1d89e1e1cfc6c05f882f");
 //        sender.sendCode(IrProtocolEnum.IR_Philips_RC6_M6_Long_Gehua, channelUP);
@@ -157,6 +202,8 @@ public class LearnActivity extends AppCompatActivity {
     public boolean sendLongLeftKey() {
         handler.sendEmptyMessage(LONG_KEY_LEFT_CODE);
         return true;
+
+
     }
 
     @OnTouch(R.id.Button_left)

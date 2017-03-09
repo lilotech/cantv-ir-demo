@@ -66,15 +66,16 @@
             android:background="@drawable/btn_control_right" />
     </RelativeLayout>
 
+
+
     <Button
         android:id="@+id/sendir"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/rudder"
         android:layout_below="@+id/rudder"
         android:layout_marginTop="20dp"
-        android:layout_marginLeft="100dp"
-        android:text="音量+" />
+        android:layout_marginLeft="20dp"
+        android:text="发送（先点击学习键）" />
 
     <Button
         android:id="@+id/recev"
@@ -83,8 +84,8 @@
         android:layout_alignEnd="@+id/rudder"
         android:layout_below="@+id/rudder"
         android:layout_marginTop="20dp"
-        android:layout_marginRight="100dp"
-        android:text="返回" />
+        android:layout_marginRight="20dp"
+        android:text="学习红外码" />
 
 
 </RelativeLayout>
