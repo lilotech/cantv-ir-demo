@@ -10,6 +10,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 
 import com.lilosrv.ir.ConsumerIrDevice;
 import com.lilosrv.ir.IrException;
@@ -37,6 +38,14 @@ public class LearnActivity extends AppCompatActivity {
     ImageButton buttonright;
     @Bind(R.id.Button_enter)
     ImageButton buttonenter;
+    @Bind(R.id.boot)
+    ImageButton btnboot;
+    @Bind(R.id.home)
+    ImageButton btnhome;
+    @Bind(R.id.back)
+    ImageButton btnback;
+    @Bind(R.id.menu)
+    ImageButton btnmenu;
     int[] volupData = new int[]{9088, 4437, 651, 1617, 652, 1615, 654, 480, 649, 484
             , 655, 1612, 657, 1611, 648, 486, 654, 1614, 655, 478, 651, 482
             , 647, 1620, 648, 1619, 650, 1618, 651, 1616, 653, 1615, 654, 479
@@ -46,7 +55,8 @@ public class LearnActivity extends AppCompatActivity {
     };
     private String upcode = "B37CCA35", downcode = "B37CD22D", leftcode = "B37C9966",
             rightcode = "B37CC13E", volup = "B37C9768", voldown = "B37CCA35",
-            okcode = "B37CCE31", backcode = "B37CC53A", channelUP = "80102658";
+            okcode = "B37CCE31", backCode = "B37CC53A", channelUP = "80102658",bootcode="B37CDC23",
+            homeCode="B37C8877",menuCode="B37C8976";
     private static final int LONG_KEY_RIGHT_CODE = 1;
     private static final int LONG_KEY_LEFT_CODE = 2;
     private static final int LONG_KEY_VOLUP_CODE = 3;
@@ -244,5 +254,22 @@ public class LearnActivity extends AppCompatActivity {
     @OnClick(R.id.Button_enter)
     public void sendenter() {
         sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, okcode);
+    }
+
+    @OnClick(R.id.boot)
+    public void boot(){
+        sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, bootcode);
+    }
+    @OnClick(R.id.home)
+    public void home(){
+        sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, homeCode);
+    }
+    @OnClick(R.id.menu)
+    public void menu(){
+        sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, menuCode);
+    }
+    @OnClick(R.id.back)
+    public void back(){
+        sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, backCode);
     }
 }
