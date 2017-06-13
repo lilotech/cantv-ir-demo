@@ -6,6 +6,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.lilosrv.ir.IrProtocolEnum;
+
+import java.util.HashMap;
 import java.util.List;
 
 import butterknife.Bind;
@@ -16,13 +19,15 @@ import butterknife.OnClick;
  * Created by 411370845 on 2016/6/6.
  */
 
-public class IrCoderAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    private List<LearnIrObject> data;
+public class IrCoderDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    private List<IrCoderData> data;
     private IrSender sender;
+    private HashMap<IrProtocolEnum, String> codes;
 
-    public IrCoderAdapter(List<LearnIrObject> items) {
+    public IrCoderDataAdapter(List<IrCoderData> items, HashMap<IrProtocolEnum, String> codes) {
         data = items;
         sender = IrSender.getIrDriver();
+        this.codes = codes;
     }
 
     @Override
@@ -36,11 +41,7 @@ public class IrCoderAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         MyViewHolder mholder = (MyViewHolder) holder;
         mholder.itemView.setTag(position);
         mholder.name.setTag(position);
-        String code = data.get(position).getLearnMangleCode();
-        if (TextUtils.isEmpty(code)) {
-            code = "未识别";
-        }
-        mholder.name.setText(position+1 + ":" + code);
+        mholder.name.setText(position+1 + ":" + data.get(position).getAnEnum().name());
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
@@ -50,12 +51,9 @@ public class IrCoderAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         @OnClick(R.id.textView2)
         void onclick() {
             int postion = (int) name.getTag();
-            LearnIrObject irObject = data.get(postion);
-            if (TextUtils.isEmpty(irObject.getLearnMangleCode())) {
-                sender.sendPulse(38000, irObject.getLearn());
-            } else {
-                sender.sendMangledCode(irObject.getLearnMangleCode());
-
+            String code = codes.get(data.get(postion).getAnEnum());
+            if (!TextUtils.isEmpty(code)) {
+                sender.sendCode(data.get(postion).getAnEnum(), code);
             }
 
         }

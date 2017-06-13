@@ -108,9 +108,22 @@
         android:layout_below="@+id/btnLayout"
         android:layout_marginLeft="20dp"
         android:layout_marginTop="20dp"
+        android:textSize="35sp"
         android:text="学习红外码" />
 
+    <Button
+        android:id="@+id/irlist"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/btnLayout"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="20dp"
+        android:textSize="35sp"
+        android:text="红外码列表" />
+
     <LinearLayout
+        android:layout_marginTop="10dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/recev">
