@@ -12,13 +12,13 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 import com.lilosrv.ir.ConsumerIrDevice;
 import com.lilosrv.ir.IrException;
 import com.lilosrv.ir.IrProtocolEnum;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -69,16 +69,14 @@ public class LearnActivity extends AppCompatActivity {
     private static final int LEARN_IR_CODE = 4;
     private static final int INIT_ID_CODE = 5;
     private ArrayList<LearnIrObject> learnIrObjects = new ArrayList<>();
-    private ArrayList<IrCoderData> irCodes = new ArrayList<>();
-    private HashMap<IrProtocolEnum, String> codes = new HashMap<>();
-    private IrSender sender;
+    private IrManager sender;
     /**
      * 长按发红外码
      * LONG_KEY_RIGHT_CODE 发送右键红外码
      * LONG_KEY_LEFT_CODE  发送左键红外码
      * LONG_KEY_VOLUP_CODE 发送音量+键红外码
      * LEARN_IR_CODE       学习红外码，更新列表
-     * INIT_ID_CODE        支持的红外码初始化
+     * INIT_ID_CODE        初始化支持的红外码
      */
     private Handler handler = new Handler() {
         @Override
@@ -103,7 +101,7 @@ public class LearnActivity extends AppCompatActivity {
                     adapter.notifyDataSetChanged();
                     break;
                 case INIT_ID_CODE:
-                    IrCoderDataAdapter dataAdapter = new IrCoderDataAdapter(irCodes, codes);
+                    IrCoderDataAdapter dataAdapter = new IrCoderDataAdapter();
                     irRecyclerView.setAdapter(dataAdapter);
                     dataAdapter.notifyDataSetChanged();
                     break;
@@ -111,75 +109,59 @@ public class LearnActivity extends AppCompatActivity {
         }
     };
 
-
-    ConsumerIrDevice irDevice = new ConsumerIrDevice();
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.box_control);
         ButterKnife.bind(this);
-        sender = IrSender.getIrDriver();
+        sender = IrManager.getIrDriver();
         irRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         irRecyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL_LIST));
-        initIrcodes();
-        Log.i(TAG, "Check whether the device has an infrared emitter = " + irDevice.hasIrEmitter());
-        Log.i(TAG, "Check whether the device has an infrared receiver = " + irDevice.hasIrReceiver());
+        Log.i(TAG, "Check whether the device has an infrared emitter = " + sender.isIrEmitter());
+        Log.i(TAG, "Check whether the device has an infrared receiver = " + sender.isIrReceiver());
 //         an array of CarrierFrequencyRange objects representing the ranges that the
 //         transmitter can support, or null if there was an error.
-        ConsumerIrDevice.CarrierFrequencyRange[] ranges = irDevice.getIrReceiverCarrierFreqency();
+        ConsumerIrDevice.CarrierFrequencyRange[] ranges = sender.getIrReceiverCarrierFrequency();
         for (ConsumerIrDevice.CarrierFrequencyRange range : ranges) {
             Log.i(TAG, "Query the infrared receiver's supported carrier frequencies = " + range.getMaxFrequency() + "  getMinFrequency=" + range.getMinFrequency());
         }
 //         an array of CarrierFrequencyRange objects representing the ranges that the
 //         transmitter can support, or null if there was an error.
-        ConsumerIrDevice.CarrierFrequencyRange[] ranges1 = irDevice.getCarrierFrequencies();
+        ConsumerIrDevice.CarrierFrequencyRange[] ranges1 = sender.getCarrierFrequencies();
         for (ConsumerIrDevice.CarrierFrequencyRange carrierFrequencyRange : ranges1) {
             Log.i(TAG, "Query the infrared transmitter's supported carrier frequencies =" +
                     carrierFrequencyRange.getMaxFrequency() + "  getMinFrequency=" + carrierFrequencyRange.getMinFrequency());
         }
+        sender.addOnReceiveIrListener(new IrReceiveInterface() {
+            @Override
+            public void onReceive(LearnIrObject learnIrObject) {
+                learnIrObjects.add(learnIrObject);
+                handler.sendEmptyMessage(LEARN_IR_CODE);
+            }
+
+            @Override
+            public void onError(IrException e) {
+                e.printStackTrace();
+                if (e.getErrorCode() == IrException.IRRESULT_RECEIVER_BUSY) {
+                    Toast.makeText(getBaseContext(), "正在学习红外码中...", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getBaseContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
 
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        handler.sendEmptyMessage(INIT_ID_CODE);
     }
 
     @OnClick(R.id.recev)
     public void recway() {
-        // sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, backcode);
-
         Log.d(TAG, "Start to learn....");
-
-        try {
-            irDevice.receive(new ConsumerIrDevice.IrReceiveListener() {
-                @Override
-                public void onIrResult(int[] ints, String s) {
-
-                    Log.d(TAG, "Learned pulse: len=" + ints.length);
-                    LearnIrObject irObject = new LearnIrObject();
-                    irObject.setLearnMangleCode(s);
-                    irObject.setLearn(ints);
-                    for (int i = 0; i < ints.length; i++) {
-                        Log.d(TAG, "" + i + "     " + ints[i]);
-                    }
-                    learnIrObjects.add(irObject);
-                    Log.d(TAG, "Learned manglecode: " + s);
-                    handler.sendEmptyMessage(LEARN_IR_CODE);
-                }
-
-                @Override
-                public void onError(IrException e) {
-                    Log.e(TAG, "", e);
-                }
-            });
-
-        } catch (IrException e) {
-            Log.e(TAG, "", e);
-        }
-
+        sender.startLearn();
+        handler.sendEmptyMessage(LEARN_IR_CODE);
     }
 
     @OnClick(R.id.irlist)
@@ -275,107 +257,4 @@ public class LearnActivity extends AppCompatActivity {
         sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, backCode);
     }
 
-    private void initIrcodes() {
-
-        codes.put(IrProtocolEnum.IR_uPD6121G_NEC, "B37CCA35");
-        codes.put(IrProtocolEnum.IR_Philips_RC6_M6_Long_Gehua, channelUP);
-        codes.put(IrProtocolEnum.IR_DVB_Pan_7051_SAMSUNG, "484E5958562B");
-        codes.put(IrProtocolEnum.IR_PROT_PANASONIC, "022080003DBD");
-        codes.put(IrProtocolEnum.IR_RCA_56K, "F590A6");
-        codes.put(IrProtocolEnum.IR_SAA3010_Philips_RC5, "1610");
-        codes.put(IrProtocolEnum.IR_DVB_40BIT, "47104144EF");
-        codes.put(IrProtocolEnum.IR_M50560, "221C");
-        codes.put(IrProtocolEnum.IR_Topway_HDDVB, "535A4C54B3");
-        codes.put(IrProtocolEnum.IR_Thomson_RCT100, "132B");
-        codes.put(IrProtocolEnum.IR_Huizhou, "001001");
-        codes.put(IrProtocolEnum.IR_Thomson_RCT311, "C1D");
-        codes.put(IrProtocolEnum.IR_Konka_KK_Y261, "120B");
-        codes.put(IrProtocolEnum.IR_TC9012, "18180BF41");
-        codes.put(IrProtocolEnum.IR_TC9012F, "070702FD");
-        codes.put(IrProtocolEnum.IR_LC7461M_C13, "01171EEB1CE3");
-        codes.put(IrProtocolEnum.IR_LC7464M_Panasonic, "022080003DBD");
-        codes.put(IrProtocolEnum.IR_Motorola2, "D46");
-        codes.put(IrProtocolEnum.IR_GD_2000, "0A06");
-        codes.put(IrProtocolEnum.IR_MN6014A_W_C6D6, "3F01003E");
-        codes.put(IrProtocolEnum.IR_uPD6124_D7C8, "15B7");
-        codes.put(IrProtocolEnum.IR_SAA3010P, "121A");
-        codes.put(IrProtocolEnum.IR_PPM4_32BIT, "10000809");
-        codes.put(IrProtocolEnum.IR_Sharp_IX0773CE, "0128001D73");
-        codes.put(IrProtocolEnum.IR_Philips_RC6_3_20bits, "1600000C");
-        codes.put(IrProtocolEnum.IR_AD6200_HY, "00F8");
-        codes.put(IrProtocolEnum.IR_M3004_6C_LAB1, "51E");
-        codes.put(IrProtocolEnum.IR_M50462, "6E02");
-        codes.put(IrProtocolEnum.IR_LC7461M_C26D16, "012A1F8400FF");
-        codes.put(IrProtocolEnum.IR_LC7464M_Panasonic, "022080003DBD");
-        codes.put(IrProtocolEnum.IR_LC7461M_C13, "01171EEB1CE3");
-        codes.put(IrProtocolEnum.IR_CUSTOM_6BIT, "02");
-        codes.put(IrProtocolEnum.IR_ASTRO1_56KHz, "72FF70");  //error
-        codes.put(IrProtocolEnum.IR_Philips_RC6_M0, "000C");
-        codes.put(IrProtocolEnum.IR_Philips_RC6_M6_Long, "0000000C");
-        codes.put(IrProtocolEnum.IR_Motorola, "79770F");
-        codes.put(IrProtocolEnum.IR_PHILIPS_RC_MM_24bits, "0A0008");
-        codes.put(IrProtocolEnum.IR_PHILIPS_RC_MM_32bits, "26706620");
-
-
-        IrCoderData irCodeData;
-        for (int i = 1; i < IrProtocolEnum.values().length; i++) {
-            irCodeData = new IrCoderData();
-            boolean config = true;
-            switch (i) {
-                case 10:
-                    config = false;
-                    break;
-                case 12:
-                    config = false;
-                    break;
-                case 19:
-                    config = false;
-                    break;
-                case 20:
-                    config = false;
-                    break;
-                case 21:
-                    config = false;
-                    break;
-                case 28:
-                    config = false;
-                    break;
-                case 29:
-                    config = false;
-                    break;
-                case 34:
-                    config = false;
-                    break;
-                case 35:
-                    config = false;
-                    break;
-                case 36:
-                    config = false;
-                    break;
-                case 40:
-                    config = false;
-                    break;
-                case 41:
-                    config = false;
-                    break;
-                case 42:
-                    config = false;
-                    break;
-                case 46:
-                    config = false;
-                    break;
-                case 47:
-                    config = false;
-                    break;
-                case 48:
-                    config = false;
-                    break;
-            }
-            irCodeData.setAnEnum(IrProtocolEnum.fromOrdinal(i));
-            irCodeData.setConfig(config);
-            if (config)
-                irCodes.add(irCodeData);
-        }
-
-    }
 }

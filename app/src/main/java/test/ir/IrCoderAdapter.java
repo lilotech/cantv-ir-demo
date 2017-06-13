@@ -18,11 +18,11 @@ import butterknife.OnClick;
 
 public class IrCoderAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private List<LearnIrObject> data;
-    private IrSender sender;
+    private IrManager sender;
 
     public IrCoderAdapter(List<LearnIrObject> items) {
         data = items;
-        sender = IrSender.getIrDriver();
+        sender = IrManager.getIrDriver();
     }
 
     @Override
