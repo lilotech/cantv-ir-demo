@@ -84,12 +84,14 @@
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:background="@drawable/btn_control_home" />
+
         <ImageButton
             android:id="@+id/back"
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:layout_centerInParent="true"
             android:background="@drawable/btn_control_back" />
+
         <ImageButton
             android:id="@+id/menu"
             android:layout_width="100dp"
@@ -98,24 +100,26 @@
             android:background="@drawable/btn_control_menu" />
     </RelativeLayout>
 
-    <Button
-        android:id="@+id/sendir"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/btnLayout"
-        android:layout_marginLeft="20dp"
-        android:layout_marginTop="20dp"
-        android:text="发送（先点击学习键）" />
 
     <Button
         android:id="@+id/recev"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignEnd="@+id/rudder"
         android:layout_below="@+id/btnLayout"
-        android:layout_marginRight="20dp"
+        android:layout_marginLeft="20dp"
         android:layout_marginTop="20dp"
         android:text="学习红外码" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/recev">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/learn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
 
 
 </RelativeLayout>

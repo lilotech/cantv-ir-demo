@@ -4,17 +4,20 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 
 import com.lilosrv.ir.ConsumerIrDevice;
 import com.lilosrv.ir.IrException;
 import com.lilosrv.ir.IrProtocolEnum;
+
+import java.util.ArrayList;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -24,8 +27,6 @@ import butterknife.OnTouch;
 
 public class LearnActivity extends AppCompatActivity {
     private static String TAG = LearnActivity.class.getSimpleName();
-    @Bind(R.id.sendir)
-    Button volupBt;
     @Bind(R.id.recev)
     Button voldownBt;
     @Bind(R.id.Button_up)
@@ -46,6 +47,8 @@ public class LearnActivity extends AppCompatActivity {
     ImageButton btnback;
     @Bind(R.id.menu)
     ImageButton btnmenu;
+    @Bind(R.id.learn)
+    RecyclerView learnCodeView;
     int[] volupData = new int[]{9088, 4437, 651, 1617, 652, 1615, 654, 480, 649, 484
             , 655, 1612, 657, 1611, 648, 486, 654, 1614, 655, 478, 651, 482
             , 647, 1620, 648, 1619, 650, 1618, 651, 1616, 653, 1615, 654, 479
@@ -55,16 +58,14 @@ public class LearnActivity extends AppCompatActivity {
     };
     private String upcode = "B37CCA35", downcode = "B37CD22D", leftcode = "B37C9966",
             rightcode = "B37CC13E", volup = "B37C9768", voldown = "B37CCA35",
-            okcode = "B37CCE31", backCode = "B37CC53A", channelUP = "80102658",bootcode="B37CDC23",
-            homeCode="B37C8877",menuCode="B37C8976";
+            okcode = "B37CCE31", backCode = "B37CC53A", channelUP = "80102658", bootcode = "B37CDC23",
+            homeCode = "B37C8877", menuCode = "B37C8976";
     private static final int LONG_KEY_RIGHT_CODE = 1;
     private static final int LONG_KEY_LEFT_CODE = 2;
     private static final int LONG_KEY_VOLUP_CODE = 3;
+    private static final int LEARN_IR_CODE = 4;
 
-
-    private int[] learn = null;
-    private String learnMangleCode;
-
+    private ArrayList<LearnIrObject> learnIrObjects = new ArrayList<>();
     IrSender sender;
     /**
      * 长按发红外码
@@ -89,6 +90,11 @@ public class LearnActivity extends AppCompatActivity {
                     sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, volup);
                     sendEmptyMessageDelayed(LONG_KEY_VOLUP_CODE, 100);
                     break;
+                case LEARN_IR_CODE:
+                    IrCoderAdapter adapter = new IrCoderAdapter(learnIrObjects);
+                    learnCodeView.setAdapter(adapter);
+                    adapter.notifyDataSetChanged();
+                    break;
             }
         }
     };
@@ -102,8 +108,7 @@ public class LearnActivity extends AppCompatActivity {
         setContentView(R.layout.box_control);
         ButterKnife.bind(this);
         sender = IrSender.getIrDriver();
-
-
+        learnCodeView.setLayoutManager(new LinearLayoutManager(this));
 
         Log.i(TAG, "Check whether the device has an infrared emitter = " + irDevice.hasIrEmitter());
         Log.i(TAG, "Check whether the device has an infrared receiver = " + irDevice.hasIrReceiver());
@@ -123,40 +128,10 @@ public class LearnActivity extends AppCompatActivity {
 
     }
 
-    @OnClick(R.id.sendir)
-    public void sendway() {
-//        sender.sendCode(IrProtocolEnum.IR_Philips_RC6_M6_Long_Gehua,channelUP);
-       // sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, upcode);
-       // sender.sendPulse(38000, learn);
-
-        if (learnMangleCode != null)
-            sender.sendMangledCode(learnMangleCode);
-        else if (learn != null)
-            sender.sendPulse(38000, learn);
-    }
-
-    @OnLongClick(R.id.sendir)
-    public boolean sendir() {
-        //handler.sendEmptyMessage(LONG_KEY_VOLUP_CODE);
-        return true;
-    }
-
-
-    @OnTouch(R.id.sendir)
-    public boolean ontouchsendirButton(View v, MotionEvent event) {
-        switch (event.getAction()) {
-            case KeyEvent.ACTION_DOWN:
-                break;
-            case KeyEvent.ACTION_UP:
-                handler.removeMessages(LONG_KEY_VOLUP_CODE);
-                break;
-        }
-        return false;
-    }
 
     @OnClick(R.id.recev)
     public void recway() {
-       // sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, backcode);
+        // sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, backcode);
 
         Log.d(TAG, "Start to learn....");
 
@@ -166,14 +141,15 @@ public class LearnActivity extends AppCompatActivity {
                 public void onIrResult(int[] ints, String s) {
 
                     Log.d(TAG, "Learned pulse: len=" + ints.length);
+                    LearnIrObject irObject=new LearnIrObject();
+                    irObject.setLearnMangleCode(s);
+                    irObject.setLearn(ints);
                     for (int i = 0; i < ints.length; i++) {
                         Log.d(TAG, "" + i + "     " + ints[i]);
                     }
-
-                    learn = ints;
-
+                    learnIrObjects.add(irObject);
                     Log.d(TAG, "Learned manglecode: " + s);
-                    learnMangleCode = s;
+                    handler.sendEmptyMessage(LEARN_IR_CODE);
                 }
 
                 @Override
@@ -182,7 +158,7 @@ public class LearnActivity extends AppCompatActivity {
                 }
             });
 
-        }catch (IrException e) {
+        } catch (IrException e) {
             Log.e(TAG, "", e);
         }
 
@@ -192,7 +168,7 @@ public class LearnActivity extends AppCompatActivity {
     public void sendup() {
 
         /*以下三种发送方式等效*/
-  //      sender.sendPulse(38000, learn);
+        //      sender.sendPulse(38000, learn);
         sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, "B37CCA35");
 //        sender.sendMangledCode("f52584de741c1d89e1e1cfc6c05f882f");
 //        sender.sendCode(IrProtocolEnum.IR_Philips_RC6_M6_Long_Gehua, channelUP);
@@ -257,19 +233,22 @@ public class LearnActivity extends AppCompatActivity {
     }
 
     @OnClick(R.id.boot)
-    public void boot(){
+    public void boot() {
         sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, bootcode);
     }
+
     @OnClick(R.id.home)
-    public void home(){
+    public void home() {
         sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, homeCode);
     }
+
     @OnClick(R.id.menu)
-    public void menu(){
+    public void menu() {
         sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, menuCode);
     }
+
     @OnClick(R.id.back)
-    public void back(){
+    public void back() {
         sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, backCode);
     }
 }

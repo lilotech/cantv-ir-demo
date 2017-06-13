@@ -55,6 +55,7 @@ public class IrSender {
         t.setName("ir");
         t.start();
         irDevice = new ConsumerIrDevice();
+        Log.i(TAG,"AAAA IrSender");
     }
 
     private static class IrHandler extends Handler {
