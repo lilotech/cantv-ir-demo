@@ -24,6 +24,7 @@ public class IrManager {
      * IR_PULSE  发送 int[]
      * IR_EXPLICIT_CODE 发送 string
      * IR_MANGLED_CODE 发送 解码方式  string
+     * IR_LEARN_CODE  学习红外码，学习期间不能发送红外码
      */
 
     private static final int IR_PULSE = 1;

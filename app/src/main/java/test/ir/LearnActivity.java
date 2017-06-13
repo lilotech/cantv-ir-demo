@@ -69,7 +69,7 @@ public class LearnActivity extends AppCompatActivity {
     private static final int LEARN_IR_CODE = 4;
     private static final int INIT_ID_CODE = 5;
     private ArrayList<LearnIrObject> learnIrObjects = new ArrayList<>();
-    private IrManager sender;
+    private IrManager irManager;
     /**
      * 长按发红外码
      * LONG_KEY_RIGHT_CODE 发送右键红外码
@@ -84,15 +84,15 @@ public class LearnActivity extends AppCompatActivity {
             super.handleMessage(msg);
             switch (msg.what) {
                 case LONG_KEY_RIGHT_CODE:
-                    sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, rightcode);
+                    irManager.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, rightcode);
                     sendEmptyMessageDelayed(LONG_KEY_RIGHT_CODE, 100);
                     break;
                 case LONG_KEY_LEFT_CODE:
-                    sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, leftcode);
+                    irManager.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, leftcode);
                     sendEmptyMessageDelayed(LONG_KEY_LEFT_CODE, 100);
                     break;
                 case LONG_KEY_VOLUP_CODE:
-                    sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, volup);
+                    irManager.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, volup);
                     sendEmptyMessageDelayed(LONG_KEY_VOLUP_CODE, 100);
                     break;
                 case LEARN_IR_CODE:
@@ -114,25 +114,25 @@ public class LearnActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.box_control);
         ButterKnife.bind(this);
-        sender = IrManager.getIrDriver();
+        irManager = IrManager.getIrDriver();
         irRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         irRecyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL_LIST));
-        Log.i(TAG, "Check whether the device has an infrared emitter = " + sender.isIrEmitter());
-        Log.i(TAG, "Check whether the device has an infrared receiver = " + sender.isIrReceiver());
+        Log.i(TAG, "Check whether the device has an infrared emitter = " + irManager.isIrEmitter());
+        Log.i(TAG, "Check whether the device has an infrared receiver = " + irManager.isIrReceiver());
 //         an array of CarrierFrequencyRange objects representing the ranges that the
 //         transmitter can support, or null if there was an error.
-        ConsumerIrDevice.CarrierFrequencyRange[] ranges = sender.getIrReceiverCarrierFrequency();
+        ConsumerIrDevice.CarrierFrequencyRange[] ranges = irManager.getIrReceiverCarrierFrequency();
         for (ConsumerIrDevice.CarrierFrequencyRange range : ranges) {
             Log.i(TAG, "Query the infrared receiver's supported carrier frequencies = " + range.getMaxFrequency() + "  getMinFrequency=" + range.getMinFrequency());
         }
 //         an array of CarrierFrequencyRange objects representing the ranges that the
 //         transmitter can support, or null if there was an error.
-        ConsumerIrDevice.CarrierFrequencyRange[] ranges1 = sender.getCarrierFrequencies();
+        ConsumerIrDevice.CarrierFrequencyRange[] ranges1 = irManager.getCarrierFrequencies();
         for (ConsumerIrDevice.CarrierFrequencyRange carrierFrequencyRange : ranges1) {
             Log.i(TAG, "Query the infrared transmitter's supported carrier frequencies =" +
                     carrierFrequencyRange.getMaxFrequency() + "  getMinFrequency=" + carrierFrequencyRange.getMinFrequency());
         }
-        sender.addOnReceiveIrListener(new IrReceiveInterface() {
+        irManager.addOnReceiveIrListener(new IrReceiveInterface() {
             @Override
             public void onReceive(LearnIrObject learnIrObject) {
                 learnIrObjects.add(learnIrObject);
@@ -155,12 +155,13 @@ public class LearnActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        handler.sendEmptyMessage(INIT_ID_CODE);
     }
 
     @OnClick(R.id.recev)
     public void recway() {
         Log.d(TAG, "Start to learn....");
-        sender.startLearn();
+        irManager.startLearn();
         handler.sendEmptyMessage(LEARN_IR_CODE);
     }
 
@@ -173,20 +174,20 @@ public class LearnActivity extends AppCompatActivity {
     public void sendup() {
 
         /*以下三种发送方式等效*/
-        //      sender.sendPulse(38000, learn);
-        sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, "B37CCA35");
-//        sender.sendMangledCode("f52584de741c1d89e1e1cfc6c05f882f");
-//        sender.sendCode(IrProtocolEnum.IR_Philips_RC6_M6_Long_Gehua, channelUP);
+        //      irManager.sendPulse(38000, learn);
+        irManager.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, "B37CCA35");
+//        irManager.sendMangledCode("f52584de741c1d89e1e1cfc6c05f882f");
+//        irManager.sendCode(IrProtocolEnum.IR_Philips_RC6_M6_Long_Gehua, channelUP);
     }
 
     @OnClick(R.id.Button_down)
     public void senddown() {
-        sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, downcode);
+        irManager.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, downcode);
     }
 
     @OnClick(R.id.Button_left)
     public void sendleft() {
-        sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, leftcode);
+        irManager.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, leftcode);
     }
 
     @OnLongClick(R.id.Button_left)
@@ -211,7 +212,7 @@ public class LearnActivity extends AppCompatActivity {
 
     @OnClick(R.id.Button_right)
     public void sendright() {
-        sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, rightcode);
+        irManager.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, rightcode);
     }
 
     @OnLongClick(R.id.Button_right)
@@ -234,27 +235,27 @@ public class LearnActivity extends AppCompatActivity {
 
     @OnClick(R.id.Button_enter)
     public void sendenter() {
-        sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, okcode);
+        irManager.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, okcode);
     }
 
     @OnClick(R.id.boot)
     public void boot() {
-        sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, bootcode);
+        irManager.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, bootcode);
     }
 
     @OnClick(R.id.home)
     public void home() {
-        sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, homeCode);
+        irManager.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, homeCode);
     }
 
     @OnClick(R.id.menu)
     public void menu() {
-        sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, menuCode);
+        irManager.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, menuCode);
     }
 
     @OnClick(R.id.back)
     public void back() {
-        sender.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, backCode);
+        irManager.sendCode(IrProtocolEnum.IR_uPD6121G_NEC, backCode);
     }
 
 }
