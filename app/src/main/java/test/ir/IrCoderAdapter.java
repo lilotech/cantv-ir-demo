@@ -36,6 +36,7 @@ public class IrCoderAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         MyViewHolder mholder = (MyViewHolder) holder;
         mholder.itemView.setTag(position);
         mholder.name.setTag(position);
+        mholder.name.setText(position+":"+data.get(position).getLearnMangleCode());
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
