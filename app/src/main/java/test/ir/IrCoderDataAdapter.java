@@ -104,12 +104,10 @@ public class IrCoderDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         codes.put(IrProtocolEnum.IR_LC7464M_Panasonic, "022080003DBD");
         codes.put(IrProtocolEnum.IR_LC7461M_C13, "01171EEB1CE3");
         codes.put(IrProtocolEnum.IR_CUSTOM_6BIT, "02");
-        codes.put(IrProtocolEnum.IR_ASTRO1_56KHz, "72FF70");  //error
+        codes.put(IrProtocolEnum.IR_ASTRO1_56KHz, "72FF70");
         codes.put(IrProtocolEnum.IR_Philips_RC6_M0, "000C");
         codes.put(IrProtocolEnum.IR_Philips_RC6_M6_Long, "0000000C");
         codes.put(IrProtocolEnum.IR_Motorola, "79770F");
-        codes.put(IrProtocolEnum.IR_PHILIPS_RC_MM_24bits, "0A0008");
-        codes.put(IrProtocolEnum.IR_PHILIPS_RC_MM_32bits, "26706620");
 
 
         IrCoderData irCodeData;
@@ -130,6 +128,12 @@ public class IrCoderDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                     config = false;
                     break;
                 case 21:
+                    config = false;
+                    break;
+                case 22:
+                    config = false;
+                    break;
+                case 23:
                     config = false;
                     break;
                 case 28:
